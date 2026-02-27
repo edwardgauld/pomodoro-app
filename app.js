@@ -54,6 +54,7 @@
 
   let tickInterval = null;
   let rafId = null;
+  let endTimeout = null; // precise setTimeout for phase completion
 
   // ---- Init ----
 
@@ -168,6 +169,13 @@
 
     tickInterval = setInterval(tick, 250);
     scheduleRaf();
+
+    // Schedule a precise timeout for when the timer ends.
+    // On desktop, this fires even if the tab is background-throttled.
+    clearTimeout(endTimeout);
+    endTimeout = setTimeout(() => {
+      if (state.running) tick();
+    }, state.timeRemaining * 1000 + 100);
   }
 
   function pauseTimer() {
@@ -183,6 +191,8 @@
     tickInterval = null;
     cancelAnimationFrame(rafId);
     rafId = null;
+    clearTimeout(endTimeout);
+    endTimeout = null;
   }
 
   function resetTimer() {
@@ -278,11 +288,18 @@
   }
 
   function sendNotification() {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      const next = state.phase === PHASE.WORK ? 'Time to focus!' : 'Break time!';
-      try {
-        new Notification('Pomodoro', { body: next, icon: 'icons/icon-192.png' });
-      } catch (_) { /* iOS PWA may not support this */ }
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+    const body = state.phase === PHASE.WORK ? 'Time to focus!' : 'Break time!';
+    const options = { body: body, icon: 'icons/icon-192.png', tag: 'pomodoro-phase' };
+
+    // Prefer service worker notification — works when page is unfocused/background
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.ready.then((reg) => {
+        reg.showNotification('Pomodoro', options);
+      }).catch(() => {});
+    } else {
+      try { new Notification('Pomodoro', options); } catch (_) {}
     }
   }
 

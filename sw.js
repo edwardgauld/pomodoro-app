@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pomodoro-v1';
+const CACHE_NAME = 'pomodoro-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -32,5 +32,20 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cached) => cached || fetch(event.request))
+  );
+});
+
+// Notification click: focus or open the app
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window' }).then((clients) => {
+      for (const client of clients) {
+        if (client.url.includes('pomodoro') && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      return self.clients.openWindow('./');
+    })
   );
 });
