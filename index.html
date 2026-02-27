@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Pomodoro</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a0a0f">
+
+  <!-- iOS PWA -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Pomodoro">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Settings button -->
+    <button class="settings-btn" id="settingsBtn" aria-label="Settings">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+      </svg>
+    </button>
+
+    <!-- Phase label -->
+    <div class="phase-label" id="phaseLabel">Focus</div>
+
+    <!-- Timer display -->
+    <div class="timer-container">
+      <div class="timer-ring" id="timerRing">
+        <svg viewBox="0 0 200 200">
+          <circle class="ring-bg" cx="100" cy="100" r="90" />
+          <circle class="ring-progress" id="ringProgress" cx="100" cy="100" r="90" />
+        </svg>
+      </div>
+      <div class="timer-display" id="timerDisplay">25:00</div>
+    </div>
+
+    <!-- Session dots -->
+    <div class="session-dots" id="sessionDots">
+      <span class="dot" data-index="0"></span>
+      <span class="dot" data-index="1"></span>
+      <span class="dot" data-index="2"></span>
+      <span class="dot" data-index="3"></span>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button class="control-btn secondary" id="resetBtn" aria-label="Reset">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+        </svg>
+      </button>
+      <button class="control-btn primary" id="startPauseBtn" aria-label="Start">
+        <svg class="icon-play" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+          <polygon points="6,3 20,12 6,21"/>
+        </svg>
+        <svg class="icon-pause" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style="display:none">
+          <rect x="5" y="3" width="4" height="18"/>
+          <rect x="15" y="3" width="4" height="18"/>
+        </svg>
+      </button>
+      <button class="control-btn secondary" id="skipBtn" aria-label="Skip">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="5,4 15,12 5,20" fill="currentColor"/>
+          <line x1="19" y1="5" x2="19" y2="19"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Settings panel -->
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-panel" id="settingsPanel">
+      <div class="settings-header">
+        <h2>Settings</h2>
+        <button class="settings-close" id="settingsClose" aria-label="Close settings">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="settings-body">
+        <div class="setting-item">
+          <label for="workDuration">Focus duration</label>
+          <div class="setting-value">
+            <button class="stepper-btn" data-target="workDuration" data-dir="-1">−</button>
+            <input id="workDuration" class="duration-input" type="number" inputmode="numeric" min="1" max="90" value="25">
+            <span class="duration-unit">min</span>
+            <button class="stepper-btn" data-target="workDuration" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="setting-item">
+          <label for="shortBreakDuration">Short break</label>
+          <div class="setting-value">
+            <button class="stepper-btn" data-target="shortBreakDuration" data-dir="-1">−</button>
+            <input id="shortBreakDuration" class="duration-input" type="number" inputmode="numeric" min="1" max="90" value="5">
+            <span class="duration-unit">min</span>
+            <button class="stepper-btn" data-target="shortBreakDuration" data-dir="1">+</button>
+          </div>
+        </div>
+        <div class="setting-item">
+          <label for="longBreakEnabled">Long break</label>
+          <div class="setting-value">
+            <button class="toggle-btn" id="longBreakToggle" aria-label="Toggle long break" role="switch" aria-checked="true">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </button>
+          </div>
+        </div>
+        <div class="setting-item setting-long-break" id="longBreakSetting">
+          <label for="longBreakDuration">Long break duration</label>
+          <div class="setting-value">
+            <button class="stepper-btn" data-target="longBreakDuration" data-dir="-1">−</button>
+            <input id="longBreakDuration" class="duration-input" type="number" inputmode="numeric" min="1" max="90" value="15">
+            <span class="duration-unit">min</span>
+            <button class="stepper-btn" data-target="longBreakDuration" data-dir="1">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
